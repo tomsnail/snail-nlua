@@ -1,7 +1,6 @@
 local config = require("config")
 
-
-if config.isLogd() == "0" then
+if ngx.ctx.islogd ~= "1" then
   return
 end
 
@@ -13,7 +12,7 @@ local broker_list = {
 local log_json = {}
 
 
-local isLogger = ngx.var.isLogger;
+local isLogger = ngx.ctx.is_logger;
 
 if isLogger == nil then
    return
@@ -25,12 +24,12 @@ end
 
 log_json["uri"]=ngx.var.uri
 log_json["host"]=ngx.var.host
-log_json["user_id"] = ngx.var.user_id
-log_json["user_name"] = ngx.var.user_name
+log_json["user_id"] = ngx.ctx.user_id
+log_json["user_name"] = ngx.ctx.user_name
 log_json["remote_addr"] = ngx.var.remote_addr
 log_json["remote_user"] = ngx.var.remote_user
 log_json["request_body"]=ngx.var.request_body
-log_json["resp_body"]=ngx.var.resp_body
+log_json["resp_body"]=ngx.ctx.resp_body
 log_json["time_local"] = ngx.var.time_local
 log_json["status"] = ngx.var.status
 log_json["request_time"] = ngx.var.request_time
@@ -39,7 +38,7 @@ log_json["http_user_agent"] = ngx.var.http_user_agent
 log_json["http_x_forwarded_for"] = ngx.var.http_x_forwarded_for
 local message = cjson.encode(log_json);
 
-if config.isLocalLogd() == "1" then
+if ngx.ctx.log_target == "1" then
         ngx.log(ngx.ERR,"",message)
 else
         local bp = producer:new(broker_list, { producer_type = "async" })

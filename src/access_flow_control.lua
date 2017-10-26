@@ -1,3 +1,7 @@
+---------
+--¼òµ¥Á÷¿Ø--
+---------
+
 local _M = {}
 
 
@@ -8,13 +12,13 @@ end
 function _M.filter()
   local RedisManager = require("RedisManager")
   local uri = ngx.var.uri
-  local uriKey = "req:uri:"..uri
+  local uriKey = "ts:nlua:req:uri:"..uri
   res = RedisManager.runCommand("incr",uriKey)
   if res ==1 then
     local resexpire = RedisManager.runCommand("expire",uriKey,1)
   end
   
-  local resCount = RedisManager.runCommand("get","req:"..uri)
+  local resCount = RedisManager.runCommand("get","ts:nlua:config:afc:req:"..uri)
   if resCount == nil then
     resCount = 200
   end

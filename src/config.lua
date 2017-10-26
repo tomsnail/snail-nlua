@@ -2,7 +2,7 @@ local _M = {}
 
 local isAL = "1"
 local isAFC = "0"
-local isSIGN = "0"
+local isSign = "0"
 local isService = "0"
 local isLog = "0"
 local isDynamicRule = "0"
@@ -20,8 +20,8 @@ function _M.isAFCd()
   return isAFC;
 end
 
-function _M.isSIGNd()
-  return isSIGN;
+function _M.isSignd()
+  return isSign;
 end
 
 function _M.isServiced()

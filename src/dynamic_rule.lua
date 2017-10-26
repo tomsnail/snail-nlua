@@ -1,6 +1,6 @@
 local _M = {}
 
-function _M.rule()
+function _M.filter()
 
 end
 
