@@ -23,12 +23,37 @@ end
 if _url == "" then
    _url = "DEFAULT_URL"
 end
-local urls = RedisManager.runCommand("hmget", "TsNginxProxy",_url)
-if urls == nil then
-    urls = RedisManager.runCommand("hmget", "TsNginxProxy","DEFAULT_URL")
-    if urls == nil then
-       ngx.exit(ngx.HTTP_FORBIDDEN)
+
+
+local proxyAddrs = util.getBlurUrl(util.string_split(_url,"/"))
+
+local urls = nil;
+
+if proxyAddrs == nil then
+
+   proxyAddrs = {}
+
+end
+
+table.insert(proxyAddrs,1,_url)
+
+
+for i=1,table.maxn(proxyAddrs) do
+
+    urls = RedisManager.runCommand("hmget", "TsNginxProxy",proxyAddrs[i])
+  
+    i = i-1  
+    
+    if urls[1] == nil then
+    else
+      break
     end
+
+end
+
+
+if urls == nil then
+   ngx.exit(ngx.HTTP_FORBIDDEN)
 end
 
 
@@ -49,6 +74,15 @@ local proxyMethod = urlMap["proxyMethod"]
 
 local realAddrs = util.string_split(urlMap["realUrl"],',')
 urlStr = realAddrs[os.time()%table.getn(realAddrs)+1]
+
+if proxyMethod == "proxy" then
+   urlStr = urlStr.._url
+end
+
+if proxyMethod == "rewrite" then
+   return ngx.redirect(urlStr);
+end
+
 if urlStr == ""  then
   ngx.exit(ngx.HTTP_FORBIDDEN)
 else
@@ -62,10 +96,6 @@ else
    elseif request_method == "POST" then
       ngx.var.url = urlStr
    end
-end
-
-if proxyMethod == "rewrite" then
-   return ngx.redirect(urlStr);
 end
 
 ngx.var.nmethod = proxyMethod; 

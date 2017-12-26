@@ -12,4 +12,19 @@ function _M.string_split(str, delimiter)
 end
 
 
+
+function _M.getBlurUrl(proxyAddr)
+  local result = {}
+  local urlStr = ""
+  for key,value in pairs(proxyAddr) do
+    urlStr = urlStr..value.."/"
+    table.insert(result,urlStr.."*")
+  end
+  return result;
+end
+
+
+
 return _M
+
+
