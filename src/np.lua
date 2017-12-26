@@ -42,11 +42,12 @@ if urlStr == "" then
 end
 
 
-local proxyMethod = 'rewrite';
+local urlMap = cjson.decode(urlStr);
+
+local proxyMethod = urlMap["proxyMethod"]
 
 
-
-local realAddrs = util.string_split(urlStr,',')
+local realAddrs = util.string_split(urlMap["realUrl"],',')
 urlStr = realAddrs[os.time()%table.getn(realAddrs)+1]
 if urlStr == ""  then
   ngx.exit(ngx.HTTP_FORBIDDEN)
