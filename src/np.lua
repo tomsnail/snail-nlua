@@ -1,10 +1,11 @@
 local cjson = require "cjson"
 local util = require("util")
 local RedisManager = require("RedisManager")
+local urlCache = require("url_cache")
 local rurl = ngx.var.url
 local _url = nil
 local args = nil
-  
+
 local request_method = ngx.var.request_method
 if request_method == "GET" then
    local rurl_s = util.string_split(rurl,'?')
@@ -25,37 +26,35 @@ if _url == "" then
 end
 
 
-local proxyAddrs = util.getBlurUrl(util.string_split(_url,"/"))
-
-local urls = nil;
-
+local proxyAddrs = nil
+proxyAddrs = util.getBlurUrl(util.string_split(_url,"/"))
 if proxyAddrs == nil then
-
-   proxyAddrs = {}
-
+  proxyAddrs = {}
 end
-
 table.insert(proxyAddrs,1,_url)
 
+local cache_url = urlCache.getCache(_url)
+if cache_url == nil then
+else
+  table.insert(proxyAddrs,1,_url)
+end
 
+
+local urls = nil;
 for i=1,table.maxn(proxyAddrs) do
-
+    ngx.log(ngx.ERR,"",' for do '..i)
     urls = RedisManager.runCommand("hmget", "TsNginxProxy",proxyAddrs[i])
-  
-    i = i-1  
-    
     if urls[1] == nil then
     else
+      urlCache.setCache(_url,proxyAddrs[i])
       break
     end
-
 end
 
 
 if urls == nil then
    ngx.exit(ngx.HTTP_FORBIDDEN)
 end
-
 
 local urlStr = table.concat(urls, "")
 if urlStr == "" then
@@ -68,13 +67,9 @@ end
 
 
 local urlMap = cjson.decode(urlStr);
-
 local proxyMethod = urlMap["proxyMethod"]
-
-
 local realAddrs = util.string_split(urlMap["realUrl"],',')
 urlStr = realAddrs[os.time()%table.getn(realAddrs)+1]
-
 if proxyMethod == "proxy" then
    urlStr = urlStr.._url
 end
