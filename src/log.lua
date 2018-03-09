@@ -25,7 +25,6 @@ end
 log_json["uri"]=ngx.var.uri
 log_json["host"]=ngx.var.host
 log_json["user_id"] = ngx.ctx.user_id
-log_json["user_name"] = ngx.ctx.user_name
 log_json["remote_addr"] = ngx.var.remote_addr
 log_json["remote_user"] = ngx.var.remote_user
 log_json["request_body"]=ngx.var.request_body

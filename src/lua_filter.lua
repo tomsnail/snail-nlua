@@ -1,10 +1,10 @@
 local afc = require("access_flow_control")
 local al = require("access_limit")
-local s = require("service")
+local s = require("npc_service")
 local sign = require("sign")
 local dynamicRule = require("dynamic_rule")
 local preParse = require("pre_parse")
-local security = require("security")
+local security = require("npc_security")
 local config = require("config")
 
 
@@ -34,14 +34,22 @@ if _dr == "1" or config.isDynamicRule() == "1" then
   preParse.filter(args)
   dynamicRule.filter(args)
 end
+
+
+
+if _sign == "1" or config.isSignd() == "1" then
+--   preParse.filter(args)
+--   sign.filter(args)
+  _sign = "1"
+else
+  _sign = "0"
+end
+
 if _secur == "1" or config.isSecurd() == "1" then
   preParse.filter(args)
-  security.filter(args)
+  security.filter(args,_sign)
 end
-if _sign == "1" or config.isSignd() == "1" then
-   preParse.filter(args)
-   sign.filter(args)
-end
+
 if _service == "1" or config.isServiced() == "1" then
   preParse.filter(args)
   s.filter(args)
