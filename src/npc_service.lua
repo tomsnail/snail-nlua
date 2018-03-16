@@ -60,7 +60,7 @@ function _M.filter(args)
                 if sumres > 3 then
                         RedisManager.runCommand("expire",incrKey,tonumber(acv_rate)+sumres/10)
                         ngx.header.content_type="application/json;charset=utf8";
-                        local resStr = '{"command":"nullResp","sequenceID":"","fingerprint":"","body":{},"status":"902","msg":"操作频繁，请稍后再试","code":"","msgCode":""}';
+                        local resStr = '{"command":"nullResp","sequenceID":"","fingerprint":"","body":{},"status":"902","msg":"频"code":"","msgCode":""}';
                         ngx.say(resStr);
                         ngx.exit(ngx.HTTP_OK)
                 end
@@ -86,7 +86,7 @@ function _M.filter(args)
         end
         if actres > tonumber(acv_number) then
                 ngx.header.content_type="application/json;charset=utf8";
-                local resStr = '{"command":"nullResp","sequenceID":"","fingerprint":"","body":{},"status":"902","msg":"超过当天最大次数，请明天再试","code":"","msgCode":""}';
+                local resStr = '{"command":"nullResp","sequenceID":"","fingerprint":"","body":{},"status":"902","msg":"","code":"","msgCode":""}';
                 ngx.say(resStr);
                 ngx.exit(ngx.HTTP_OK)
         end
@@ -107,14 +107,14 @@ function _M.filter(args)
   ngx.ctx.log_level = urlMap["logLevel"]
   
   local result = loadbalance.load(urlMap["reverseAgncAddr"],urlMap["loadbalance"])
-  if urlStr == ""  then
+  if result == ""  then
     ngx.exit(ngx.HTTP_FORBIDDEN)
   else
      local request_method = ngx.var.request_method
      if request_method == "GET" then
-        ngx.var.url = urlStr.."?".._args..((args.userStr == nil) and '_T=T' or args.userStr)
+        ngx.var.url = result.."?".._args..((args.userStr == nil) and '_T=T' or args.userStr)
      elseif request_method == "POST" then
-        ngx.var.url = urlStr.."?"..args.userStr
+        ngx.var.url = result.."?"..args.userStr
      end
   end
 end

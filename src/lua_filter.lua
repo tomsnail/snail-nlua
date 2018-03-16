@@ -1,11 +1,20 @@
 local afc = require("access_flow_control")
 local al = require("access_limit")
 local s = require("npc_service")
-local sign = require("sign")
+-- local sign = require("sign")
 local dynamicRule = require("dynamic_rule")
 local preParse = require("pre_parse")
 local security = require("npc_security")
 local config = require("config")
+
+local crypto = require("luacrypto.crypto")
+
+local hmac = require("luacrypto.hmac")
+
+
+local ret = hmac.digest("sha256", "abcdefg", "hmackey")
+
+ ngx.log(ngx.ERR, "hmac:"+ret)
 
 
 local RedisManager = require("RedisManager")

@@ -3,6 +3,8 @@ local _M = {}
 
 function _M.load(urls,loadbalance)
 
+  local util = require("util")
+
   
   if urls == nil or urls == "" then
   

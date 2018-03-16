@@ -16,19 +16,19 @@ function _M.filter(args)
   local RedisManager = require("RedisManager")
   local rurl = ngx.var.url
   local _url = nil
-  local args = nil
+  local _args = nil
   local jsonbody = nil
   
   local request_method = ngx.var.request_method
   if request_method == "GET" then
      local rurl_s = util.string_split(rurl,'?')
       _url = string.sub(rurl_s[1],6,string.len(rurl))
-      args = rurl_s[2]
+      _args = rurl_s[2]
   elseif request_method == "POST" then
      _url = string.sub(rurl,6,string.len(rurl))
      ngx.req.read_body()
-     args = ngx.req.get_body_data()
-     if args == nil then
+     _args = ngx.req.get_body_data()
+     if _args == nil then
         ngx.exit(ngx.HTTP_FORBIDDEN)
         return
       else
@@ -68,10 +68,10 @@ function _M.filter(args)
     end
   else
     
-    local args_0 = string.sub(args.."",1,1)
+    local args_0 = string.sub(_args.."",1,1)
     
     if args_0 == "{" then
-       jsonbody = cjson.decode(args);
+       jsonbody = cjson.decode(_args);
     else
        jsonbody = {}
     end
@@ -86,9 +86,9 @@ function _M.filter(args)
         version = version.."/"
     end
     
-    urls = RedisManager.runCommand("hget", "urlmap",version.._url)
+    urls = RedisManager.runCommand("hmget", "urlmap",version.._url)
     if urls == nil then
-        urls = RedisManager.runCommand("hget", "urlmap",_url)
+        urls = RedisManager.runCommand("hmget", "urlmap",_url)
         if urls == nil then
            ngx.exit(ngx.HTTP_FORBIDDEN)
         end
@@ -100,10 +100,10 @@ function _M.filter(args)
   local urlStr = table.concat(urls, "")
   args.urlMapStr = urlStr
 
-  if args == nil or args == '' then
-    args = "_time="..ngx.time()
+  if _args == nil or _args == '' then
+    _args = "_time="..ngx.time()
   end
-  args.args = args.."&"
+  args.args = _args.."&"
   args.url = _url
   args.jsonbody = jsonbody
   
