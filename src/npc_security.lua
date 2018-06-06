@@ -49,6 +49,7 @@ function _M.filter(args,sign)
       timestamp = t["npc_timestamp"]
     else
       token = headers["npc-token"]
+
       signature = headers["npc-signature"]
       noncestr = headers["npc-noncestr"]
       timestamp = headers["npc-timestamp"]
@@ -56,19 +57,31 @@ function _M.filter(args,sign)
 
     local nowtime = ngx.now()*1000
 
+
+    if timestamp == nil or timestamp == "" then
+      timestamp = "0"
+    end
+
+
+
     local _timestamp = tonumber(timestamp)
+
+    ngx.log(ngx.ERR, "timestamp is error"..nowtime..' '.._timestamp)
+
+    if nowtime > _timestamp and nowtime - _timestamp < 60000 then
+
+    elseif nowtime < _timestamp and _timestamp - nowtime < 60000 then
     
-    if token == nil or token == "" then
-      ngx.log(ngx.INFO, "token is null")
+    else
+      ngx.log(ngx.ERR, "timestamp is error")
       ngx.exit(ngx.HTTP_FORBIDDEN)
       return
+
     end
-    
-    
-    if nowtime > _timestamp and nowtime - _timestamp < 60000 then
-    elseif nowtime < _timestamp and _timestamp - nowtime < 60000 then
-    else
-      ngx.log(ngx.INFO, "timestamp is error")
+
+
+    if token == nil or token == "" then
+      ngx.log(ngx.ERR, "token is null")
       ngx.exit(ngx.HTTP_FORBIDDEN)
       return
     end
@@ -79,7 +92,7 @@ function _M.filter(args,sign)
     userinfostr = RedisManager.runCommand("get", "ts:nlua:user:token:"..token)
 
     if userinfostr == nil then
-       ngx.log(ngx.INFO, "userinfostr is null")
+       ngx.log(ngx.ERR, "userinfostr is null")
        ngx.exit(ngx.HTTP_FORBIDDEN)
        return
     else
@@ -87,11 +100,34 @@ function _M.filter(args,sign)
         _userId = userinfo["userId"]
     end
     ngx.ctx.user_id = _userId
+
+
+    local urlAuth = RedisManager.runCommand("hget", "ts:nlua:user:resource:".._userId,args.url)
+    if urlAuth == nil or urlAuth == '0' then
+        ngx.log(ngx.ERR, "url auth error")
+        ngx.exit(ngx.HTTP_FORBIDDEN)
+        return
+    end
+
+
     local _ip = userinfo["ip"]     
     local ip=headers["X-REAL-IP"] or headers["X_FORWARDED_FOR"] or ngx.var.remote_addr or "0.0.0.0"
 
-    if ip ~= _ip then
-        ngx.log(ngx.INFO, "ip is not same")
+    local _ips = util.string_split(_ip,',')
+
+    local ip_flag = true
+
+    for i=1,#_ips do
+
+        if ip == _ip then
+                ip_flag = false
+                break
+        end
+
+    end
+
+    if ip_flag then
+        ngx.log(ngx.ERR, "ip is not same")
         ngx.exit(ngx.HTTP_FORBIDDEN)
         return
      end
@@ -110,19 +146,22 @@ function _M.filter(args,sign)
       if now_f == signature then
         
       else
-         ngx.log(ngx.INFO, "signature is not same")
+         ngx.log(ngx.ERR, "signature is not same")
          ngx.exit(ngx.HTTP_FORBIDDEN)
          return
       end
   end
   
+  local request_method = ngx.var.request_method
   local userStr = ''
   local isAddUser = urlMap["isAddUser"];
   if isAddUser == "1" then
       userStr = "USER_UUID=".._userId
   end
   args.userStr = userStr;
-
+  
+  
+  
 end
 
 return _M
